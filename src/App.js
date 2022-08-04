@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useNavigate } from 'react-router-dom'
+import { useField } from './hooks'
 
 //7.1
 const Menu = () => {
@@ -67,19 +68,20 @@ const Footer = () => (
 
 const CreateNew = (props) => {
   const navigate = useNavigate()
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
-
+  const content = useField('text')
+  const author = useField('text')
+  const info = useField('text')
 
   const handleSubmit = (e) => {
     e.preventDefault()
     props.addNew({
-      content,
-      author,
-      info,
+      content:content.value,
+      author: author.value,
+      info: info.value,
       votes: 0
     })
+
+    props.setNotification(`a new anecdote ${content.value} has been created!`)
     navigate('/')
   }
 
@@ -89,15 +91,15 @@ const CreateNew = (props) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input {...content}/>
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input {...author}/>
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e)=> setInfo(e.target.value)} />
+          <input {...info}/>
         </div>
         <button>create</button>
       </form>
@@ -107,6 +109,7 @@ const CreateNew = (props) => {
 }
 
 const App = () => {
+  const noti = ''
   const [anecdotes, setAnecdotes] = useState([
     {
       content: 'If it hurts, do it more often',
@@ -125,6 +128,10 @@ const App = () => {
   ])
 
   const [notification, setNotification] = useState('')
+
+  if(notification != ''){
+    setTimeout(() => setNotification(''), 5000)
+  }
 
   const addNew = (anecdote) => {
     anecdote.id = Math.round(Math.random() * 10000)
@@ -150,9 +157,10 @@ const App = () => {
     <h1>Software anecdotes</h1>
     <Router>
         <Menu />
+        <p>{notification}</p>
         <Routes>
           <Route exact path='/' element={<AnecdoteList anecdotes={anecdotes}/>}/>
-          <Route exact path='/create' element={<CreateNew addNew={addNew}/>}/>
+          <Route exact path='/create' element={<CreateNew addNew={addNew} setNotification={setNotification} notification={notification}/>}/>
           <Route exact path='/about' element={<About/>}/>
           <Route exact path='/anecdotes/:id' element={<Anecdote anecdotes={anecdotes}/>}/>
         </Routes>
